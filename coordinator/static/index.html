@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>多表增量装载协调器</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">⟳</span>
+      <div>
+        <h1>多表增量装载协调器</h1>
+        <p class="subtitle">DAG 依赖 · 共享分区串行锁 · 资源预算 · 检查点恢复</p>
+      </div>
+    </div>
+    <div class="scheduler-meta">
+      <span id="sched-state" class="pill pill-running">运行中</span>
+      <span id="sched-gen" class="gen">代次 #1</span>
+    </div>
+    <div class="controls">
+      <button id="btn-start" class="btn">▶ 继续</button>
+      <button id="btn-pause" class="btn">⏸ 暂停</button>
+      <button id="btn-restart" class="btn btn-warn" title="模拟进程崩溃后读快照重启">⚡ 崩溃重启</button>
+      <button id="btn-reset" class="btn btn-danger">⟲ 重新装载</button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="panel panel-dag">
+      <div class="panel-head">
+        <h2>装载 DAG</h2>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="dag-wrap">
+        <svg id="dag" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </section>
+
+    <section class="panel panel-side">
+      <div class="panel-head"><h2>资源占用</h2></div>
+      <div id="resources"></div>
+      <div class="panel-head second"><h2>分区锁 / 等待队列</h2></div>
+      <div id="locks"></div>
+    </section>
+
+    <section class="panel panel-tasks">
+      <div class="panel-head">
+        <h2>任务与恢复点</h2>
+        <span class="hint">点击行可对任务执行取消 / 注入故障 / 人工补齐</span>
+      </div>
+      <div class="table-wrap">
+        <table id="task-table">
+          <thead>
+            <tr>
+              <th>任务 / 表</th><th>状态</th><th>进度</th><th>尝试</th>
+              <th>恢复点</th><th>等待</th><th>错误 / 重试</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel panel-events">
+      <div class="panel-head">
+        <h2>事件时间线</h2>
+        <label class="live-toggle"><input type="checkbox" id="live" checked /> 实时推送(SSE)</label>
+      </div>
+      <div id="event-log" class="event-log"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+{
+  "resources": { "total_slots": 4, "total_mem": 8 },
+  "tasks": [
+    {
+      "task_id": "stg_orders",
+      "table": "stg_orders",
+      "partitions": ["dt=2026-11-17", "dt=2026-11-18", "dt=2026-11-19"],
+      "deps": [],
+      "slots": 1, "mem": 2, "timeout": 8,
+      "max_attempts": 3, "partition_seconds": 0.4, "chunk_seconds": 0.05
+    },
+    {
+      "task_id": "stg_payments",
+      "table": "stg_payments",
+      "partitions": ["dt=2026-11-17", "dt=2026-11-18", "dt=2026-11-19"],
+      "deps": [],
+      "slots": 1, "mem": 2, "timeout": 8,
+      "max_attempts": 3, "partition_seconds": 0.35, "chunk_seconds": 0.05
+    },
+    {
+      "task_id": "stg_inventory",
+      "table": "stg_inventory",
+      "partitions": ["dt=2026-11-18", "dt=2026-11-19"],
+      "deps": [],
+      "slots": 2, "mem": 4, "timeout": 10,
+      "max_attempts": 2, "partition_seconds": 0.5, "chunk_seconds": 0.05
+    },
+    {
+      "task_id": "stg_users",
+      "table": "stg_users",
+      "partitions": ["dt=2026-11-19"],
+      "deps": [],
+      "slots": 1, "mem": 1, "timeout": 6,
+      "max_attempts": 1, "partition_seconds": 0.3, "chunk_seconds": 0.05
+    },
+    {
+      "task_id": "dim_product",
+      "table": "dim_product",
+      "partitions": ["dt=2026-11-19"],
+      "deps": ["stg_inventory"],
+      "slots": 1, "mem": 2, "timeout": 6,
+      "max_attempts": 2, "partition_seconds": 0.35, "chunk_seconds": 0.05
+    },
+    {
+      "task_id": "dim_customer",
+      "table": "dim_customer",
+      "partitions": ["dt=2026-11-19"],
+      "deps": ["stg_users"],
+      "slots": 1, "mem": 2, "timeout": 6,
+      "max_attempts": 2, "partition_seconds": 0.35, "chunk_seconds": 0.05
+    },
+    {
+      "task_id": "fct_orders",
+      "table": "fct_orders",
+      "partitions": ["dt=2026-11-17", "dt=2026-11-18", "dt=2026-11-19"],
+      "deps": ["stg_orders", "stg_payments", "dim_product", "dim_customer"],
+      "slots": 2, "mem": 4, "timeout": 12,
+      "max_attempts": 3, "partition_seconds": 0.45, "chunk_seconds": 0.05
+    },
+    {
+      "task_id": "dwd_orders_clean",
+      "table": "dwd_orders_clean",
+      "partitions": ["dt=2026-11-17", "dt=2026-11-18", "dt=2026-11-19"],
+      "deps": ["stg_orders"],
+      "slots": 1, "mem": 2, "timeout": 6,
+      "max_attempts": 3,
+      "fail_times": 2, "fail_kind": "error",
+      "backoff_base": 0.6,
+      "partition_seconds": 0.35, "chunk_seconds": 0.05
+    },
+    {
+      "task_id": "rpt_sales_daily",
+      "table": "rpt_sales_daily",
+      "partitions": ["dt=2026-11-19"],
+      "deps": ["fct_orders"],
+      "slots": 1, "mem": 2, "timeout": 6,
+      "max_attempts": 2, "partition_seconds": 0.35, "chunk_seconds": 0.05
+    },
+    {
+      "task_id": "audit_reconcile",
+      "table": "audit_reconcile",
+      "partitions": ["dt=2026-11-17", "dt=2026-11-18", "dt=2026-11-19"],
+      "deps": ["fct_orders"],
+      "slots": 1, "mem": 2, "timeout": 4,
+      "max_attempts": 2,
+      "fail_times": 1, "fail_kind": "timeout",
+      "backoff_base": 0.6,
+      "partition_seconds": 0.9, "chunk_seconds": 0.05
+    }
+  ]
+}
